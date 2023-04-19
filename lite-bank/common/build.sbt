@@ -10,17 +10,17 @@ val AkkaHttpJsonVersion = "1.39.2"
 lazy val slickVersion = "3.3.3"
 lazy val postgresVersion = "42.3.1"
 
-lazy val common = ProjectRef(base = file("../common"), id = "common")
-
-lazy val account = (project in file("."))
-    .dependsOn(common)
+lazy val common = (project in file("."))
     .settings(
-        name := "account",
+        name := "common",
         libraryDependencies ++= Seq(
-            "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-            "de.heikoseeberger" %% "akka-http-circe" % AkkaHttpJsonVersion,
+            "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+            "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+            "com.typesafe.akka" %% "akka-stream-kafka" % "3.0.0",
 
-            "ch.qos.logback"     % "logback-classic"       % "1.2.3"
+            "io.circe" %% "circe-core" % circeVersion,
+            "io.circe" %% "circe-generic" % circeVersion,
+            "io.circe" %% "circe-parser" % circeVersion
         )
     )
 
