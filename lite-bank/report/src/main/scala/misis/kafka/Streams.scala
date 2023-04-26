@@ -14,5 +14,13 @@ import scala.concurrent.ExecutionContext
 
 class Streams(repository: Repository)(implicit val system: ActorSystem, executionContext: ExecutionContext)
     extends WithKafka {
-//    override def group: String = ???
+    override def group: String = "report"
+
+    kafkaSource[AccountUpdated]
+        .map { e =>
+            println(s"Аккаунт ${e.accountId} обновлен на сумму ${e.value}")
+            e
+        }
+        .to(Sink.ignore)
+        .run()
 }
