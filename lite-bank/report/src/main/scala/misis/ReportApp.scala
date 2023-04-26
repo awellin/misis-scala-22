@@ -1,20 +1,15 @@
 package misis
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import com.typesafe.config.ConfigFactory
+import com.sksamuel.elastic4s.http.JavaClient
+import com.sksamuel.elastic4s.{ElasticClient, ElasticProperties}
 import misis.kafka.Streams
-import misis.model.AccountUpdate
 import misis.repository.Repository
-import misis.route.Route
-import io.circe.generic.auto._
-import io.circe.parser._
-import io.circe.syntax._
-
 
 object ReportApp extends App  {
     implicit val system: ActorSystem = ActorSystem("MyApp")
     implicit val ec = system.dispatcher
+    val elastic = ElasticClient(JavaClient(ElasticProperties("http://localhost:9200")))
 
     private val repository = new Repository()
     private val streams = new Streams(repository)
