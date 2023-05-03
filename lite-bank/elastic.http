@@ -44,6 +44,19 @@ GET http://localhost:9200/allrecipes/_doc/1
 ### list data
 GET http://localhost:9200/allrecipes/_search
 
+
+### list fruits
+GET http://localhost:9200/allrecipes/_search
+Content-Type: application/json
+
+{
+  "query": {
+    "term": {
+      "tags": "vegetarian"
+    }
+  }
+}
+
 ### delete data
 DELETE http://localhost:9200/allrecipes/_doc/o204vocBWid0dsupX4B9
 
@@ -54,6 +67,60 @@ DELETE http://localhost:9200/allrecipes
 ### list account-updated
 GET /account-updated/_search?size=100
 Host: localhost:9200
+
+### list account-updated Кэшбек
+GET /account-updated/_search
+Host: localhost:9200
+Content-Type: application/json
+
+{
+  "query": {
+    "match": {
+      "category": "кэшбек"
+    }
+  }
+}
+
+### list account-updated 1
+GET /account-updated/_search
+Host: localhost:9200
+Content-Type: application/json
+
+{
+  "query": {
+    "term": {
+      "accountId": 1
+    }
+  }
+}
+
+### list all
+GET /account-updated/_search
+Host: localhost:9200
+
+
+### list account-updated operationId
+GET /account-updated/_search
+Host: localhost:9200
+Content-Type: application/json
+
+{
+  "query": {
+    "match": {
+      "operationId": "8230b60a-7414-4945-8a83-b272e4448143"
+    }
+  }
+}
+
+
+### mapping
+GET /account-updated
+Host: localhost:9200
+
+### termvectors fields=operationId
+GET /account-updated/_termvectors/LHlY4ocBOUZaZ5_ijNt4?fields=operationId
+Host: localhost:9200
+
 
 ### list account-updated 1&Кэшбек
 GET /account-updated/_search

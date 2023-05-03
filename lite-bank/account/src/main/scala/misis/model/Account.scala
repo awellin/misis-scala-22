@@ -12,6 +12,7 @@ case class AccountUpdate(accountId: Int, value: Int, category: Option[String], t
 
 trait Event
 case class AccountUpdated(
+    operationId: UUID = UUID.randomUUID(),
     accountId: Int,
     value: Int,
     publishedAt: Option[Instant] = Some(Instant.now()),
