@@ -1,23 +1,20 @@
-package misis.repository
+package misis
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Sink, Source}
 import com.sksamuel.elastic4s.ElasticClient
-import com.sksamuel.elastic4s.ElasticDsl._
-import misis.kafka.ReportStreams
 import misis.model.AccountUpdate
-import io.circe.generic._
-import io.circe.syntax._
 import io.circe.generic.auto._
-import misis.TopicName
 
-class InitAccount(elastic: ElasticClient, streams: ReportStreams)(implicit system: ActorSystem) {
+class InitAccount(elastic: ElasticClient)(implicit val system: ActorSystem) extends WithKafka {
 
-    implicit val commandTopicName: TopicName[AccountUpdate] = streams.simpleTopicName[AccountUpdate]
+    override def group: String = "random"
+
+    implicit val commandTopicName: TopicName[AccountUpdate] = simpleTopicName[AccountUpdate]
 
     Source(1 to 3)
         .map(accountId => AccountUpdate(accountId = accountId, value = 1000, category = None, tags = None))
-        .map(command => streams.produceCommand(command))
+        .map(command => produceCommand(command))
         .to(Sink.ignore)
         .run()
 
@@ -49,7 +46,7 @@ class InitAccount(elastic: ElasticClient, streams: ReportStreams)(implicit syste
                     .map(_ => tags(rand.nextInt(tags.size))))
             )
         )
-        .map(command => streams.produceCommand(command))
+        .map(command => produceCommand(command))
         .to(Sink.ignore)
         .run()
 }
