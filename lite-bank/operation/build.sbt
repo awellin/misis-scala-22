@@ -11,9 +11,11 @@ lazy val slickVersion = "3.3.3"
 lazy val postgresVersion = "42.3.1"
 
 lazy val common = ProjectRef(base = file("../common"), id = "common")
+lazy val account = ProjectRef(base = file("../account"), id = "account")
 
 lazy val operation = (project in file("."))
     .dependsOn(common)
+    .dependsOn(account)
     .settings(
         name := "operation",
         libraryDependencies ++= Seq(

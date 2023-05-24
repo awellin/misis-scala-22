@@ -3,7 +3,7 @@ package misis
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import com.typesafe.config.ConfigFactory
-import misis.kafka.AccountStreams
+import misis.kafka.{AccountCommandStreams, AccountEventStreams}
 import misis.model.AccountUpdate
 import misis.repository.AccountRepository
 import misis.route.AccountRoute
@@ -21,13 +21,9 @@ object AccountApp extends App  {
 
 
     private val repository = new AccountRepository(accountId, defAmount)
-    private val streams = new AccountStreams(repository)
+    private val commands = new AccountCommandStreams(repository)
+    private val events = new AccountEventStreams(repository)
 
-    implicit val commandTopicName: TopicName[AccountUpdate] = streams.simpleTopicName[AccountUpdate]
-//    val rand = new scala.util.Random
-//    streams.produceCommand(AccountUpdate(1, rand.nextInt(1000)))
-//    streams.produceCommand(AccountUpdate(2, rand.nextInt(1000)))
-
-    private val route = new AccountRoute()
+    private val route = new AccountRoute(repository)
     Http().newServerAt("0.0.0.0", port).bind(route.routes)
 }

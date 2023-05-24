@@ -21,5 +21,6 @@ object OperationApp extends App  {
     private val repository = new Repository(streams)
 
     private val route = new Route(streams, repository)
+    println(route.routes)
     Http().newServerAt("0.0.0.0", port).bind(route.routes)
 }

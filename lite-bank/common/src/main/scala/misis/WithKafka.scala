@@ -1,8 +1,9 @@
 package misis
 
 import akka.actor.ActorSystem
-import akka.kafka.scaladsl.{Consumer, Producer}
-import akka.kafka.{ConsumerSettings, ProducerSettings, Subscriptions}
+import akka.kafka.ConsumerMessage.CommittableOffset
+import akka.kafka.scaladsl.{Committer, Consumer, Producer}
+import akka.kafka.{CommitterSettings, ConsumerSettings, ProducerSettings, Subscriptions}
 import akka.stream.scaladsl.{Flow, Source}
 import io.circe._
 import io.circe.parser._
@@ -19,12 +20,13 @@ trait WithKafka {
     def group: String
 
     val consumerConfig = system.settings.config.getConfig("akka.kafka.consumer")
-    val consumerSettings = ConsumerSettings(consumerConfig, new StringDeserializer, new StringDeserializer)
+    def consumerSettings = ConsumerSettings(consumerConfig, new StringDeserializer, new StringDeserializer)
         .withProperty(ConsumerConfig.GROUP_ID_CONFIG, group)
         .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
     val producerConfig = system.settings.config.getConfig("akka.kafka.producer")
     val producerSettings = ProducerSettings(producerConfig, new StringSerializer, new StringSerializer)
+    val committerSettings = CommitterSettings(system)
 
     implicit def simpleTopicName[T](implicit tag: ClassTag[T]): TopicName[T] = () => tag.runtimeClass.getSimpleName
 
@@ -39,11 +41,28 @@ trait WithKafka {
         }
         .log(s"Случилась ошибка при чтении топика ${topicName.get}")
 
+    def kafkaCSource[T](implicit decoder: Decoder[T], topicName: TopicName[T]) = Consumer
+        .committableSource(consumerSettings, Subscriptions.topics(topicName.get))
+        .map { message =>
+            val body = message.record.value()
+            decode[T](body).map(message.committableOffset -> _)
+        }
+        .collect {
+            case Right(command) =>
+                command
+            case Left(error) => throw new RuntimeException(s"Ошибка при разборе сообщения $error")
+        }
+        .log(s"Случилась ошибка при чтении топика ${topicName.get}")
+
     def kafkaSink[T](implicit encoder: Encoder[T], topicName: TopicName[T]) = Flow[T]
         .map(event => event.asJson.noSpaces)
         .map(value => new ProducerRecord[String, String](topicName.get, value))
         .log(s"Случилась ошибка при обработке сообщения из топика ${topicName.get}")
         .to(Producer.plainSink(producerSettings))
+
+    def committerSink = {
+        Flow[CommittableOffset].to(Committer.sink(committerSettings))
+    }
 
     def produceCommand[T](command: T)(implicit encoder: Encoder[T], topicName: TopicName[T]) = {
         Source

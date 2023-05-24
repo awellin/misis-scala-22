@@ -8,7 +8,8 @@ case class Account(id: Int, amount: Int) {
 }
 
 trait Command
-case class AccountUpdate(accountId: Int, value: Int, category: Option[String], tags: Option[Seq[String]])
+case class AccountUpdate(accountId: Int, value: Int, category: Option[String] = None, tags: Option[Seq[String]] = None)
+case class Snaphot(accountId: Int)
 
 trait Event
 case class AccountUpdated(
@@ -16,6 +17,7 @@ case class AccountUpdated(
     accountId: Int,
     value: Int,
     publishedAt: Option[Instant] = Some(Instant.now()),
-    category: Option[String],
-    tags: Option[Seq[String]]
+    category: Option[String] = None,
+    tags: Option[Seq[String]] = None,
+    needCommit: Option[Boolean] = Some(false)
 )
